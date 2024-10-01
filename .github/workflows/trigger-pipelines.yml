@@ -13,15 +13,14 @@ jobs:
         id: read_config
         run: |
           jobs=$(jq -c '.jobs' config.json)
-          echo "jobs=$jobs" >> $GITHUB_ENV
+          echo "::set-output name=jobs::$jobs"
 
-  # Dynamically create jobs based on the config file
   dynamic-jobs:
     needs: generate-jobs
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        job_name: ${{ fromJson(env.jobs) }}
+        job_name: ${{ fromJson(needs.generate-jobs.outputs.jobs) }}
     steps:
       - name: Run ${{ matrix.job_name }}
-        run: echo "Running job :" ${{ matrix.job_name }}
+        run: echo "Running job:" ${{ matrix.job_name }}
