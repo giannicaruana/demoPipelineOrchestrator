@@ -22,6 +22,8 @@ jobs:
         run: |
           options=$(jq -r '.options | join(",")' options.json)
           echo "::set-output name=options::$options"
+      - name: Debug options
+        run: echo "Options: ${{ steps.set-options.outputs.options }}"
 
   job1:
     if: ${{ github.event.inputs.job == 'job1' }}
