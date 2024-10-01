@@ -15,9 +15,9 @@ applicationsTool:
         uses: actions/checkout@v2
 
       - name: Read config file
-      id: read_config
-      run: |
-        echo "::set-output name=applicationsTool::$(jq -c '.applicationsTool' config.json)"
+        id: read_config
+        run: |
+          echo "::set-output name=applicationsTool::$(jq -c '.applicationsTool' config.json)"
 
 
   # Dynamically create jobs based on the config file
