@@ -32,7 +32,7 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.app_selection != '' }}
     strategy:
       matrix:
-        app_name: [${{ github.event.inputs.app_selection }}]
+        app_name: [ "${{ github.event.inputs.app_selection }}" ]
     steps:
       - name: Trigger deploy pipeline for ${{ matrix.app_name }}
         run: |
