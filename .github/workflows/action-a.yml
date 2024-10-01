@@ -15,6 +15,7 @@ jobs:
           sudo apt-get install -y jq
           sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.6.1/yq_linux_amd64
           sudo chmod +x /usr/local/bin/yq
+          sudo apt-get install -y fzf
 
       - name: Read jobs configuration
         id: read-jobs
