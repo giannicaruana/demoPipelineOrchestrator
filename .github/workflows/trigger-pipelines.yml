@@ -4,13 +4,8 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:
-    inputs:
-      app_name:
-        description: 'Name of the application to deploy'
-        required: true
 
-jobs:
+applicationsTool:
   generate-options:
     runs-on: ubuntu-latest
     outputs:
@@ -19,22 +14,26 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Generate options
-        id: generate
-        run: |
-          options=$(jq -r '.applicationsTool[]' config.json | jq -R -s -c 'split("\n")[:-1]')
-          echo "::set-output name=options::$options"
+      - name: Read config file
+      id: read_config
+      run: |
+        echo "::set-output name=applicationsTool::$(jq -c '.applicationsTool' config.json)"
 
-  trigger:
-    needs: generate-options
+
+  # Dynamically create jobs based on the config file
+  job_matrix:
+    needs: generate-jobs
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app_name: ${{ fromJson(needs.generate-jobs.outputs.applicationsTool) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Trigger deploy pipeline
+      - name: Trigger deploy pipeline for  ${{ matrix.app_name }} appliation
         run: |
-          app_name="${{ github.event.inputs.app_name }}"
+          app_name="${{ matrix.app_name  }}"
           if [[ ! " ${options[@]} " =~ " ${app_name} " ]]; then
             echo "Invalid application name: $app_name"
             exit 1
