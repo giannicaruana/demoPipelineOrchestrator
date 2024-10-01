@@ -1,0 +1,33 @@
+name: Deploy Application
+
+on:
+  workflow_dispatch:
+    inputs:
+      app_selection:
+        description: 'Select the app to deploy'
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Get apps from previous workflow
+        id: get-apps
+        run: |
+          apps=$(gh run list --json databaseId --jq '.[0].databaseId')
+          echo "Retrieved apps: $apps"
+          echo "::set-output name=apps::$apps"
+
+      - name: Deploy selected app
+        if: ${{ github.event.inputs.app_selection != '' }}
+        run: |
+          echo "Triggering deploy for ${{ github.event.inputs.app_selection }}"
+          curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.SECRET_TOKEN }}" \
+            https://api.github.com/repos/giannicaruana/demoPipelineCalled/actions/workflows/deploy.yml/dispatches \
+            -d "{\"ref\":\"main\", \"inputs\": {\"app_name\": \"${{ github.event.inputs.app_selection }}\"}}"
