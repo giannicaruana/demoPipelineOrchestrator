@@ -17,24 +17,11 @@ jobs:
           apps=$(jq -c '.applicationsTool' config.json)
           echo "::set-output name=apps::$apps"
 
-  jobs:
+  request-approval:
     needs: generate-jobs
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        app_name: ${{ fromJson(needs.generate-jobs.outputs.apps) }}
     steps:
-      - name: Wait for approval for ${{ matrix.app_name }}
-        uses: peter-evans/wait-for-approval@v3
-        with:
-          approvers: 'giannicaruana'
-          timeout-minutes: 60
-
-      - name: Trigger deploy pipeline for ${{ matrix.app_name }}
-        run: |
-          echo "Triggering deploy for ${{ matrix.app_name }}"
-          curl -X POST \
-            -H "Accept: application/vnd.github.v3+json" \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            https://api.github.com/repos/giannicaruana/demoPipelineCalled/actions/workflows/deploy.yml/dispatches \
-            -d "{\"ref\":\"main\", \"inputs\": {\"app_name\": \"${{ matrix.app_name }}\"}}"
+      - name: Request approval
+        run: echo "Requesting approval for jobs: ${{ needs.generate-jobs.outputs.apps }}"
+        env:
+          JOBS: ${{ needs.generate-jobs.outputs.apps }}

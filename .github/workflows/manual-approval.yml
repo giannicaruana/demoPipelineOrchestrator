@@ -1,0 +1,32 @@
+name: Manual Approval
+
+on:
+  workflow_run:
+    workflows: ["Dynamic Jobs"]
+    types:
+      - completed
+
+jobs:
+  approval:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for manual approval
+        uses: actions/github-script@v4
+        with:
+          script: |
+            const { context, github } = require('@actions/github');
+            const runId = context.runId;
+            const repo = context.repo.repo;
+            const owner = context.repo.owner;
+
+            await github.actions.createWorkflowDispatch({
+              owner,
+              repo,
+              workflow_id: 'deploy.yml',
+              ref: 'main',
+              inputs: {
+                app_name: 'your-app-name'
+              }
+            });
+
+            console.log(`Approval requested for workflow run ${runId}`);
