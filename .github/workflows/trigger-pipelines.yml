@@ -7,38 +7,24 @@ on:
         description: 'Select the job to run'
         required: true
         type: choice
-        options: []
+        options:
+          - job1
+          - job2
+          - job3
+          - job4
+          - job5
 
 jobs:
-  set-options:
-    runs-on: ubuntu-latest
-    outputs:
-      options: ${{ steps.set-options.outputs.options }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-      - name: Read options from JSON file
-        id: set-options
-        run: |
-          options=$(jq -r '.options | join(",")' options.json)
-          echo "::set-output name=options::$options"
-      - name: Debug options
-        run: echo "Options:" ${{ steps.set-options.outputs.options }}"
-
   dynamic-job:
-    needs: set-options
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        job_name: ${{ fromJson(needs.set-options.outputs.options) }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-      - name: Trigger deploy pipeline for ${{ matrix.job_name }}
+      - name: Trigger deploy pipeline for ${{ github.event.inputs.job }}
         run: |
-          echo "Triggering deploy for ${{ matrix.job_name }}"
+          echo "Triggering deploy for ${{ github.event.inputs.job }}"
           curl -X POST \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: token ${{ secrets.SECRET_TOKEN }}" \
             https://api.github.com/repos/giannicaruana/demoPipelineCalled/actions/workflows/deploy.yml/dispatches \
-            -d "{\"ref\":\"main\", \"inputs\": {\"app_name\": \"${{ matrix.job_name }}\"}}"
+            -d "{\"ref\":\"main\", \"inputs\": {\"app_name\": \"${{ github.event.inputs.job }}\"}}"
