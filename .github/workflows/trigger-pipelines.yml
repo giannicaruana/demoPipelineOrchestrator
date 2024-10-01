@@ -1,4 +1,4 @@
-name: Manual Job Selection with Dynamic Options
+name: Dynamic Jobs
 
 on:
   workflow_dispatch:
@@ -15,7 +15,7 @@ jobs:
     outputs:
       options: ${{ steps.set-options.outputs.options }}
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v2
       - name: Read options from JSON file
         id: set-options
@@ -23,31 +23,22 @@ jobs:
           options=$(jq -r '.options | join(",")' options.json)
           echo "::set-output name=options::$options"
       - name: Debug options
-        run: echo "Options " ${{ steps.set-options.outputs.options }}
+        run: echo "Options:" ${{ steps.set-options.outputs.options }}"
 
-  job1:
-    if: ${{ github.event.inputs.job == 'job1' }}
+  dynamic-job:
+    needs: set-options
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        job_name: ${{ fromJson(needs.set-options.outputs.options) }}
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v2
-      - name: Run job1
-        run: echo "Running job1"
-
-  job2:
-    if: ${{ github.event.inputs.job == 'job2' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Run job2
-        run: echo "Running job2"
-
-  job3:
-    if: ${{ github.event.inputs.job == 'job3' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Run job3
-        run: echo "Running job3"
+      - name: Trigger deploy pipeline for ${{ matrix.job_name }}
+        run: |
+          echo "Triggering deploy for ${{ matrix.job_name }}"
+          curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.SECRET_TOKEN }}" \
+            https://api.github.com/repos/giannicaruana/demoPipelineCalled/actions/workflows/deploy.yml/dispatches \
+            -d "{\"ref\":\"main\", \"inputs\": {\"app_name\": \"${{ matrix.job_name }}\"}}"
