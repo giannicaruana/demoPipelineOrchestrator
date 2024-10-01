@@ -1,9 +1,6 @@
-name: Trigger Pipeline
+name: Dynamic Jobs
 
-on:
-  push:
-    branches:
-      - main
+on: [push]
 
 jobs:
   generate-jobs:
@@ -15,8 +12,7 @@ jobs:
       - name: Read config file
         id: read_config
         run: |
-          echo "::set-output name=applicationsTool::$(jq -c '.applicationsTool' config.json)"
-
+          echo "::set-output name=jobs::$(jq -c '.jobs' config.json)"
 
   # Dynamically create jobs based on the config file
   job_matrix:
@@ -24,11 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        app_name: ${{ fromJson(needs.generate-jobs.outputs.applicationsTool) }}
+        job_name: ${{ fromJson(needs.generate-jobs.outputs.jobs) }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
       - name: Trigger deploy pipeline for  ${{ matrix.app_name }} appliation
         run: |
           app_name="${{ matrix.app_name  }}"
