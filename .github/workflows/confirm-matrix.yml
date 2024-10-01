@@ -38,4 +38,4 @@ jobs:
         job: ${{ fromJson(needs.select-and-confirm-jobs.outputs.selected_jobs) }}
     steps:
       - name: Execute Job
-        run: echo "Eseguendo il job: ${{ matrix.job }}"
+        run: echo "Eseguendo il job:" ${{ matrix.job }}
