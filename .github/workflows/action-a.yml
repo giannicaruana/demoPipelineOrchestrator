@@ -5,6 +5,8 @@ on: [push]
 jobs:
   select-jobs:
     runs-on: ubuntu-latest
+    outputs:
+      selected_jobs: ${{ steps.select-jobs.outputs.selected_jobs }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -26,7 +28,7 @@ jobs:
         id: select-jobs
         run: |
           selected_jobs=$(echo $jobs | jq -r '.[]' | fzf -m | jq -c -R -s 'split("\n") | map(select(length > 0))')
-          echo "selected_jobs=$selected_jobs" >> $GITHUB_ENV
+          echo "::set-output name=selected_jobs::$selected_jobs"
 
   call-action-b:
     needs: select-jobs
