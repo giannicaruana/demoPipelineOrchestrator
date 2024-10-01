@@ -17,19 +17,15 @@ jobs:
           apps=$(jq -c '.applicationsTool' config.json)
           echo "::set-output name=apps::$apps"
 
-  dynamic-jobs:
-    needs: generate-jobs
+  jobs:
+    needs: [generate-jobs, approval]
+    if: github.actor == 'giannicaruana' # Replace with the specific user's GitHub username
+
     runs-on: ubuntu-latest
     strategy:
       matrix:
         app_name: ${{ fromJson(needs.generate-jobs.outputs.apps) }}
-    
     steps:
-      - name: Wait for approval to deploy for ${{ matrix.app_name }}
-        id: approval
-        run: |
-          echo "Waiting for approval to deploy ${{ matrix.app_name }}. Please approve the workflow in the GitHub UI."
-
       - name: Trigger deploy pipeline for ${{ matrix.app_name }}
         run: |
           echo "Triggering deploy for ${{ matrix.app_name }}"
