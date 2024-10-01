@@ -12,7 +12,7 @@ jobs:
       - name: Read config file
         id: read_config
         run: |
-          echo "::set-output name=jobs::$(jq -c '.jobs' config.json)"
+          echo "::set-output name=jobs::$(jq -c '.jobs' ../config.json)"
 
   # Dynamically create jobs based on the config file
   job_matrix:
