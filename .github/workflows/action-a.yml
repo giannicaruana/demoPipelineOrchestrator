@@ -1,10 +1,10 @@
-name: Action A
-
 on: [push]
 
 jobs:
-  select-and-call-jobs:
+  select-jobs:
     runs-on: ubuntu-latest
+    outputs:
+      selected_jobs: ${{ steps.select-jobs.outputs.selected_jobs }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -20,17 +20,27 @@ jobs:
       - name: Read jobs configuration
         id: read-jobs
         run: |
-          jobs=$(yq e '.jobs | map(.name)' jobs.yml | jq -c)
+          jobs=$(yq e '.jobs[].name' jobs.yml | jq -c -R -s 'split("\n") | map(select(length > 0))')
           echo "jobs=$jobs" >> $GITHUB_ENV
+          echo "Jobs: $jobs"
 
       - name: Select jobs
         id: select-jobs
         run: |
           selected_jobs=$(echo $jobs | jq -r '.[]' | fzf -m | jq -c -R -s 'split("\n") | map(select(length > 0))')
           echo "selected_jobs=$selected_jobs" >> $GITHUB_ENV
+          echo "Selected Jobs: $selected_jobs"
+        env:
+          jobs: ${{ steps.read-jobs.outputs.jobs }}
 
+  call-action-b:
+    needs: select-jobs
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        job: ${{ fromJson(env.selected_jobs) }}
+    steps:
       - name: Call Action B
-        run: |
-          for job in $(echo ${{ needs.select-jobs.outputs.selected_jobs }} | jq -r '.[]'); do
-            echo "Eseguendo il job: $job"
-          done
+        uses: ./.github/actions/action-b
+        with:
+          job: ${{ matrix.job }}
