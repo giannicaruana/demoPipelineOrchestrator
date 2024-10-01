@@ -1,5 +1,3 @@
-name: Action A
-
 on: [push]
 
 jobs:
@@ -28,10 +26,11 @@ jobs:
       - name: Select jobs
         id: select-jobs
         run: |
-          selected_jobs=$(cat selected_jobs.txt | jq -c -R -s 'split("\n") | map(select(length > 0))')
+          selected_jobs=$(echo $jobs | jq -r '.[]' | fzf -m | jq -c -R -s 'split("\n") | map(select(length > 0))')
           echo "selected_jobs=$selected_jobs" >> $GITHUB_ENV
-          echo "::set-output name=selected_jobs::$selected_jobs"
           echo "Selected Jobs: $selected_jobs"
+        env:
+          jobs: ${{ steps.read-jobs.outputs.jobs }}
 
   call-action-b:
     needs: select-jobs
