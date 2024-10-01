@@ -31,4 +31,4 @@ jobs:
             -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: token ${{ secrets.SECRET_TOKEN }}" \
             https://api.github.com/repos/giannicaruana/demoPipelineCalled/actions/workflows/deploy.yml/dispatches \
-            -d "{\"ref\":\"main\", \"inputs\": {\"app_name\": \"${{ matrix.app_name }}\"}}"
+            -d "{\"ref\":\"main\", \"inputs\": {\"app_name\": \"${{ matrix.app_name }}\"}}" 
