@@ -9,16 +9,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      - name: Install yq and jq
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.6.1/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
       - name: Read jobs configuration
         id: read-jobs
         run: |
-          jobs=$(cat jobs.yml | yq '.jobs | map(.name)')
+          jobs=$(yq e '.jobs | map(.name)' jobs.yml | jq -c)
           echo "jobs=$jobs" >> $GITHUB_ENV
 
       - name: Select jobs
         id: select-jobs
         run: |
-          selected_jobs=$(echo $jobs | jq -r '.[]' | fzf -m)
+          selected_jobs=$(echo $jobs | jq -r '.[]' | fzf -m | jq -c -R -s 'split("\n") | map(select(length > 0))')
           echo "selected_jobs=$selected_jobs" >> $GITHUB_ENV
 
   call-action-b:
