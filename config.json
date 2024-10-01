@@ -1,4 +1,3 @@
 {
-    "applicationsTool": ["app1", "app2", "app3"]
+    "jobs": ["job1", "job2", "job3"]
 }
-  
