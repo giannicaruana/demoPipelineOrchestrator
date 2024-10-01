@@ -28,6 +28,9 @@ jobs:
   job_matrix:
     needs: generate-options
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        job_name: ${{ github.event.inputs.app_name }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
