@@ -54,7 +54,7 @@ jobs:
     steps:
       - name: Trigger deploy pipeline for ${{ matrix.app_name }}
         run: |
-          echo "Triggering deploy for ${{ matrix.app_name }}"
+          echo "Triggering deploy for "${{ matrix.app_name }}
           curl -X POST \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: token ${{ secrets.SECRET_TOKEN }}" \
