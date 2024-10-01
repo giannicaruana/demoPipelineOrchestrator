@@ -25,7 +25,7 @@ jobs:
         app_name: ${{ fromJson(needs.generate-jobs.outputs.apps) }}
     steps:
       - name: Wait for approval for ${{ matrix.app_name }}
-        uses: peter-evans/wait-for-approval@v2
+        uses: peter-evans/wait-for-approval@v3
         with:
           approvers: 'giannicaruana'
           timeout-minutes: 60
