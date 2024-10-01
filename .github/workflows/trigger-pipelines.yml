@@ -1,4 +1,4 @@
-name: Manual Job Selection
+name: Manual Job Selection with Dynamic Options
 
 on:
   workflow_dispatch:
@@ -7,12 +7,22 @@ on:
         description: 'Select the job to run'
         required: true
         type: choice
-        options:
-          - job1
-          - job2
-          - job3
+        options: []
 
 jobs:
+  set-options:
+    runs-on: ubuntu-latest
+    outputs:
+      options: ${{ steps.set-options.outputs.options }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Read options from file
+        id: set-options
+        run: |
+          options=$(cat options.txt | tr '\n' ',' | sed 's/,$//')
+          echo "::set-output name=options::$options"
+
   job1:
     if: ${{ github.event.inputs.job == 'job1' }}
     runs-on: ubuntu-latest
