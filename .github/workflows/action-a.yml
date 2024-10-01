@@ -1,4 +1,13 @@
-on: [push]
+name: Action A
+
+on:
+  push:
+  workflow_dispatch:
+    inputs:
+      selected_jobs:
+        description: 'Comma-separated list of selected jobs'
+        required: true
+        default: ''
 
 jobs:
   select-jobs:
@@ -15,7 +24,6 @@ jobs:
           sudo apt-get install -y jq
           sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.6.1/yq_linux_amd64
           sudo chmod +x /usr/local/bin/yq
-          sudo apt-get install -y fzf
 
       - name: Read jobs configuration
         id: read-jobs
@@ -24,10 +32,11 @@ jobs:
           echo "jobs=$jobs" >> $GITHUB_ENV
           echo "Jobs: $jobs"
 
-      - name: Select jobs
+      - name: Set selected jobs
         id: select-jobs
         run: |
-          selected_jobs=$(echo $jobs | jq -r '.[]' | fzf -m | jq -c -R -s 'split("\n") | map(select(length > 0))')
+          selected_jobs="${{ github.event.inputs.selected_jobs }}"
+          echo "selected_jobs=$selected_jobs" >> $GITHUB_ENV
           echo "::set-output name=selected_jobs::$selected_jobs"
           echo "Selected Jobs: $selected_jobs"
 
