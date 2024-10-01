@@ -1,6 +1,13 @@
 name: Dynamic Jobs
 
-on: [push]
+on:
+  workflow_dispatch:
+    inputs:
+      app_selection:
+        description: 'Select the app to deploy (leave blank to deploy all)'
+        required: false
+        type: string
+  push:
 
 jobs:
   generate-jobs:
@@ -24,7 +31,8 @@ jobs:
       matrix:
         app_name: ${{ fromJson(needs.generate-jobs.outputs.apps) }}
     steps:
-      - name: Trigger deploy pipeline for ${{ matrix.app_name }}
+      - name: Conditionally deploy selected app
+        if: ${{ github.event.inputs.app_selection == '' || github.event.inputs.app_selection == matrix.app_name }}
         run: |
           echo "Triggering deploy for ${{ matrix.app_name }}"
           curl -X POST \
