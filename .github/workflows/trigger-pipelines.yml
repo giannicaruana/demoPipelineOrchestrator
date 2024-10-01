@@ -17,10 +17,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Read options from file
+      - name: Read options from JSON file
         id: set-options
         run: |
-          options=$(cat options.txt | tr '\n' ',' | sed 's/,$//')
+          options=$(jq -r '.options | join(",")' options.json)
           echo "::set-output name=options::$options"
 
   job1:
