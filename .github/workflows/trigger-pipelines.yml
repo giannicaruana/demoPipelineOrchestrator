@@ -22,6 +22,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Request approval
-        run: echo "Requesting approval for jobs: ${{ needs.generate-jobs.outputs.apps }}"
+        run: echo "Requesting approval for jobs:" ${{ needs.generate-jobs.outputs.apps }}
         env:
           JOBS: ${{ needs.generate-jobs.outputs.apps }}
