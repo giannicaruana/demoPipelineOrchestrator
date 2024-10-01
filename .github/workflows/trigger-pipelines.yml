@@ -1,13 +1,6 @@
 name: Dynamic Jobs
 
-on:
-  workflow_dispatch:
-    inputs:
-      app_selection:
-        description: 'Select the app to deploy (leave blank to deploy all)'
-        required: false
-        type: string
-  push:
+on: [push]
 
 jobs:
   generate-jobs:
@@ -31,15 +24,11 @@ jobs:
       matrix:
         app_name: ${{ fromJson(needs.generate-jobs.outputs.apps) }}
     steps:
-      - name: Conditionally deploy based on app_selection
+      - name: Trigger deploy pipeline for ${{ matrix.app_name }}
         run: |
-          if [[ -z "${{ github.event.inputs.app_selection }}" || "${{ github.event.inputs.app_selection }}" == "${{ matrix.app_name }}" ]]; then
-            echo "Triggering deploy for ${{ matrix.app_name }}"
-            curl -X POST \
-              -H "Accept: application/vnd.github.v3+json" \
-              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              https://api.github.com/repos/giannicaruana/demoPipelineCalled/actions/workflows/deploy.yml/dispatches \
-              -d "{\"ref\":\"main\", \"inputs\": {\"app_name\": \"${{ matrix.app_name }}\"}}"
-          else
-            echo "Skipping deploy for ${{ matrix.app_name }}"
-          fi
+          echo "Triggering deploy for ${{ matrix.app_name }}"
+          curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/giannicaruana/demoPipelineCalled/actions/workflows/deploy.yml/dispatches \
+            -d "{\"ref\":\"main\", \"inputs\": {\"app_name\": \"${{ matrix.app_name }}\"}}"
