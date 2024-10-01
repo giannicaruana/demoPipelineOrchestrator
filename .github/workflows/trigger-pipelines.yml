@@ -24,4 +24,4 @@ jobs:
         job_name: ${{ fromJson(env.jobs) }}
     steps:
       - name: Run ${{ matrix.job_name }}
-        run: echo "Running job : ${{ matrix.job_name }}"
+        run: echo "Running job :" ${{ matrix.job_name }}
