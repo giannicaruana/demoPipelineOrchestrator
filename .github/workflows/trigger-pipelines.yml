@@ -5,11 +5,12 @@ on:
     branches:
       - main
 
-applicationsTool:
-  generate-options:
+jobs:
+  generate-jobs:
     runs-on: ubuntu-latest
-    outputs:
-      options: ${{ steps.generate.outputs.options }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
