@@ -1,34 +1,46 @@
-name: Dynamic Jobs
+name: Trigger Pipeline
 
-on: [push]
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      app_name:
+        description: 'Name of the application to deploy'
+        required: true
 
 jobs:
-  generate-jobs:
+  generate-options:
     runs-on: ubuntu-latest
     outputs:
-      apps: ${{ steps.generate.outputs.apps }}
+      options: ${{ steps.generate.outputs.options }}
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Read config file
+      - name: Generate options
         id: generate
         run: |
-          apps=$(jq -c '.applicationsTool' config.json)
-          echo "::set-output name=apps::$apps"
+          options=$(jq -r '.applicationsTool[]' config.json | jq -R -s -c 'split("\n")[:-1]')
+          echo "::set-output name=options::$options"
 
-  jobs:
-    needs: generate-jobs
+  job_matrix:
+    needs: generate-options
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        app_name: ${{ fromJson(needs.generate-jobs.outputs.apps) }}
     steps:
-      - name: Trigger deploy pipeline for ${{ matrix.app_name }}
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Trigger deploy pipeline
         run: |
-          echo "Triggering deploy for ${{ matrix.app_name }}"
+          app_name="${{ github.event.inputs.app_name }}"
+          if [[ ! " ${options[@]} " =~ " ${app_name} " ]]; then
+            echo "Invalid application name: $app_name"
+            exit 1
+          fi
           curl -X POST \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             https://api.github.com/repos/giannicaruana/demoPipelineCalled/actions/workflows/deploy.yml/dispatches \
-            -d "{\"ref\":\"main\", \"inputs\": {\"app_name\": \"${{ matrix.app_name }}\"}}"
+            -d "{\"ref\":\"main\", \"inputs\": {\"app_name\": \"$app_name\"}}"
