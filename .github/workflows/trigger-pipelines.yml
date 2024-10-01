@@ -11,13 +11,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Read config file
+      - name: Read config from secret
         id: generate
         run: |
-          apps=$(jq -c '.applicationsTool' config.json)
+          # Recupera il JSON dal secret
+          apps_json="${{ secrets.CONFIG_JSON }}"
+          # Estrai le applicazioni usando jq
+          apps=$(echo "$apps_json" | jq -c '.applicationsTool')
           echo "::set-output name=apps::$apps"
 
-  jobs:
+  deploy-jobs:
     needs: generate-jobs
     runs-on: ubuntu-latest
     strategy:
