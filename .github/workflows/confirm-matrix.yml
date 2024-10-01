@@ -1,0 +1,41 @@
+name: Confirm Matrix Execution
+
+on: [workflow_dispatch]
+
+jobs:
+  select-and-confirm-jobs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Define jobs
+        id: define-jobs
+        run: |
+          echo 'jobs=["job1", "job2", "job3"]' >> $GITHUB_ENV
+
+      - name: Select jobs
+        id: select-jobs
+        run: |
+          selected_jobs=$(echo $jobs | jq -r '.[]' | fzf -m | jq -c -R -s 'split("\n") | map(select(length > 0))')
+          echo "selected_jobs=$selected_jobs" >> $GITHUB_ENV
+
+      - name: Confirm jobs
+        id: confirm-jobs
+        run: |
+          echo "I seguenti job sono stati selezionati: ${{ steps.select-jobs.outputs.selected_jobs }}"
+          read -p "Vuoi procedere con l'esecuzione di questi job? (yes/no): " confirm
+          if [ "$confirm" != "yes" ]; then
+            echo "Esecuzione annullata dall'utente."
+            exit 1
+          fi
+
+  execute-jobs:
+    needs: select-and-confirm-jobs
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        job: ${{ fromJson(needs.select-and-confirm-jobs.outputs.selected_jobs) }}
+    steps:
+      - name: Execute Job
+        run: echo "Eseguendo il job: ${{ matrix.job }}"
