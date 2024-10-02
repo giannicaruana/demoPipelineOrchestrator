@@ -9,7 +9,6 @@ on:
       environment:
         description: 'Deployment environment'
         required: true
-        default: 'staging' # Puoi cambiare il valore predefinito se necessario
 
 jobs:
   generate-jobs:
