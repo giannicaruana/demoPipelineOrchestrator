@@ -46,7 +46,7 @@ jobs:
             -d "{\"ref\":\"main\", \"inputs\": {\"app_name\": \"${{ matrix.app_name }}\", \"environment\": \"dev\"}}"
 
   deploy-staging:
-    if: contains(github.event.inputs.environment, 'staging')
+    if: contains(github.event.inputs.environment, 'dev')
     needs: run-test
     runs-on: ubuntu-latest
     strategy:
