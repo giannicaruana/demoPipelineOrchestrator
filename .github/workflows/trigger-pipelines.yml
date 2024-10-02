@@ -18,11 +18,11 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const { context, github } = require('@actions/github');
-            const issueComment = context.payload.comment.body;
-            const issueNumber = context.issue.number;
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
+            const github = require('@actions/github');
+            const issueComment = github.context.payload.comment.body;
+            const issueNumber = github.context.issue.number;
+            const owner = github.context.repo.owner;
+            const repo = github.context.repo.repo;
 
             await github.issues.createComment({
               owner,
