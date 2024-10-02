@@ -1,7 +1,0 @@
-jobs:
-  - name: job1
-    description: "Esegue il job 1"
-  - name: job2
-    description: "Esegue il job 2"
-  - name: job3
-    description: "Esegue il job 3"
