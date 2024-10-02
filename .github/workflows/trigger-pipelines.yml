@@ -15,9 +15,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Awaiting approval
-        uses: hmarr/auto-approve-action@v2
+        uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.SECRET_TOKEN }}
+          script: |
+            const { context, github } = require('@actions/github');
+            const issueComment = context.payload.comment.body;
+            const issueNumber = context.issue.number;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            await github.issues.createComment({
+              owner,
+              repo,
+              issue_number: issueNumber,
+              body: 'Please approve this workflow to proceed.'
+            });
+
+            const approval = await github.issues.listComments({
+              owner,
+              repo,
+              issue_number: issueNumber
+            });
+
+            if (!approval.data.some(comment => comment.body.includes('approved'))) {
+              throw new Error('Workflow not approved');
+            }
 
   deploy-dev:
     if: contains(github.event.inputs.environment, 'dev')
