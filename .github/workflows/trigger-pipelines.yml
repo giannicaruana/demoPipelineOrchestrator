@@ -15,9 +15,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Awaiting approval
-        uses: chrnorm/deployment-approvals-action@v1
+        uses: peter-evans/repository-dispatch@v2
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          event-type: manual-approval
+          client-payload: '{"message": "Please approve this workflow to proceed."}'
 
   deploy-dev:
     if: contains(github.event.inputs.environment, 'dev')
