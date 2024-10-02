@@ -1,0 +1,25 @@
+name: App1 Workflow
+
+on:
+    push:
+    workflow_dispatch:
+  
+
+jobs:
+  generate-output:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Generate output
+        id: generate
+        run: |
+          echo "Generating output..."
+          echo '{"applicationsTool": ["app11", "app12"]}' > output.json
+
+      - name: Upload output artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: output
+          path: output.json
