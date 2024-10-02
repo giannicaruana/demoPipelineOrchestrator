@@ -1,13 +1,7 @@
 name: App1 Workflow
 
-on: 
-    workflow_dispatch:
-      inputs:
-        app_name:
-          description: 'Name of the application'
-          required: true
-          default: 'app'
-  
+on:
+  workflow_dispatch:
 
 jobs:
   generate-output:
@@ -20,10 +14,10 @@ jobs:
         id: generate
         run: |
           echo "Generating output..."
-          echo '{"applicationsTool": ["app11", "app12"]}' > output.json
+          echo '{"applicationsTool": ["app1", "app2", "app3"]}' > output.json
 
       - name: Upload output artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: output
           path: output.json
