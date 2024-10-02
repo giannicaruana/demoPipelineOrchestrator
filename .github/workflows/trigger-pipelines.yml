@@ -1,54 +1,53 @@
-name: CI/CD Pipeline
+name: CI + CD
 
 on:
   push:
-    branches:
-      - main
-      - dev
-      - staging
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  Build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        environment: [dev, staging, production]
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '14'
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build the app
-        run: npm run build
-
-      - name: Deploy to ${{ matrix.environment }}
-        env:
-          ENVIRONMENT: ${{ matrix.environment }}
-        run: |
-          if [ "${{ matrix.environment }}" == "dev" ]; then
-            echo "Deploying to development environment"
-            # Add your deployment script for development here
-          elif [ "${{ matrix.environment }}" == "staging" ]; then
-            echo "Deploying to staging environment"
-            # Add your deployment script for staging here
-          elif [ "${{ matrix.environment }}" == "production" ]; then
-            echo "Deploying to production environment"
-            # Add your deployment script for production here
-
-  manual-approval:
-    needs: build-and-deploy
+      - name: Compile
+        run: echo Hello, world!
+    
+  DeployDev:
+    name: Deploy to Dev 
+    if: github.event_name == 'pull_request'
+    needs: [Build]
     runs-on: ubuntu-latest
-    if: ${{ matrix.environment != 'dev' }}
+    environment: 
+      name: Development
+      url: 'http://dev.myapp.com'
     steps:
-      - name: Wait for approval
-        uses: peter-evans/repository-dispatch@v1
-        with:
-          event-type: manual-approval
+      - name: Deploy
+        run: echo I am deploying! 
+    
+  DeployStaging:
+    name: Deploy to Staging 
+    if: github.event.ref == 'refs/heads/main'
+    needs: [Build]
+    runs-on: ubuntu-latest
+    environment: 
+      name: Staging
+      url: 'http://test.myapp.com'
+    steps:
+      - name: Deploy
+        run: echo I am deploying! 
+            
+  DeployProd:
+    name: Deploy to Production 
+    needs: [DeployStaging]
+    runs-on: ubuntu-latest
+    environment: 
+      name: Production
+      url: 'http://www.myapp.com'
+    steps:
+      - name: Deploy
+        run: echo I am deploying! 
+    
