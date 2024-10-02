@@ -16,12 +16,6 @@ jobs:
           echo "Generating output..."
           echo '{"applicationsTool": ["app1", "app2", "app3"]}' > output.json
 
-      - name: Upload output artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: output
-          path: output.json
-
       - name: Trigger trigger-pipelines workflow
         run: |
           apps=$(jq -c '.applicationsTool' output.json)
