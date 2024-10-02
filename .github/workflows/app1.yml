@@ -1,4 +1,4 @@
-name: App1 Workflow
+name: App1
 
 on:
   workflow_dispatch:
