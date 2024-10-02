@@ -1,53 +1,87 @@
-name: CI + CD
+name: Trigger Pipelines
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
+    inputs:
+      apps:
+        description: 'List of applications'
+        required: true
+      environment:
+        description: 'Comma-separated list of deployment environments'
+        required: true
 
 jobs:
-  Build:
+  run-test:
+    if: contains(github.event.inputs.environment, 'dev')
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app_name: ${{ fromJson(github.event.inputs.apps) }}
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-      - name: Compile
-        run: echo Hello, world!
-    
-  DeployDev:
-    name: Deploy to Dev 
-    if: github.event_name == 'pull_request'
-    needs: [Build]
+      - name: Trigger deploy pipeline for ${{ matrix.app_name }} in dev
+        run: |
+          echo "tested"
+
+
+  deploy-dev:
+    if: contains(github.event.inputs.environment, 'dev')
+    needs: run-test
     runs-on: ubuntu-latest
-    environment: 
-      name: Development
-      url: 'http://dev.myapp.com'
+    strategy:
+      matrix:
+        app_name: ${{ fromJson(github.event.inputs.apps) }}
     steps:
-      - name: Deploy
-        run: echo I am deploying! 
-    
-  DeployStaging:
-    name: Deploy to Staging 
-    if: github.event.ref == 'refs/heads/main'
-    needs: [Build]
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Trigger deploy pipeline for ${{ matrix.app_name }} in dev
+        run: |
+          echo "Triggering deploy for ${{ matrix.app_name }} in dev"
+          curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.SECRET_TOKEN }}" \
+            https://api.github.com/repos/giannicaruana/demoPipelineCalled/actions/workflows/deploy.yml/dispatches \
+            -d "{\"ref\":\"main\", \"inputs\": {\"app_name\": \"${{ matrix.app_name }}\", \"environment\": \"dev\"}}"
+
+  deploy-uat:
+    if: contains(github.event.inputs.environment, 'uat')
     runs-on: ubuntu-latest
-    environment: 
-      name: Staging
-      url: 'http://test.myapp.com'
+    needs: [deploy-dev,run-test]
+    strategy:
+      matrix:
+        app_name: ${{ fromJson(github.event.inputs.apps) }}
     steps:
-      - name: Deploy
-        run: echo I am deploying! 
-            
-  DeployProd:
-    name: Deploy to Production 
-    needs: [DeployStaging]
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Trigger deploy pipeline for ${{ matrix.app_name }} in uat
+        run: |
+          echo "Triggering deploy for ${{ matrix.app_name }} in uat"
+          curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.SECRET_TOKEN }}" \
+            https://api.github.com/repos/giannicaruana/demoPipelineCalled/actions/workflows/deploy.yml/dispatches \
+            -d "{\"ref\":\"main\", \"inputs\": {\"app_name\": \"${{ matrix.app_name }}\", \"environment\": \"uat\"}}"
+
+  deploy-prod:
+    if: contains(github.event.inputs.environment, 'prod')
     runs-on: ubuntu-latest
-    environment: 
-      name: Production
-      url: 'http://www.myapp.com'
+    needs: [deploy-uat,run-test]
+    strategy:
+      matrix:
+        app_name: ${{ fromJson(github.event.inputs.apps) }}
     steps:
-      - name: Deploy
-        run: echo I am deploying! 
-    
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Trigger deploy pipeline for ${{ matrix.app_name }} in prod
+        run: |
+          echo "Triggering deploy for ${{ matrix.app_name }} in prod"
+          curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.SECRET_TOKEN }}" \
+            https://api.github.com/repos/giannicaruana/demoPipelineCalled/actions/workflows/deploy.yml/dispatches \
+            -d "{\"ref\":\"main\", \"inputs\": {\"app_name\": \"${{ matrix.app_name }}\", \"environment\": \"prod\"}}"
