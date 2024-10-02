@@ -1,4 +1,4 @@
-name: Dynamic Jobs
+name: Trigger Pipelines
 
 on:
   workflow_dispatch:
@@ -7,11 +7,12 @@ on:
         description: 'List of applications'
         required: true
       environment:
-        description: 'Deployment environment'
+        description: 'Comma-separated list of deployment environments'
         required: true
 
 jobs:
-  generate-jobs:
+  deploy-dev:
+    if: contains(github.event.inputs.environment, 'dev')
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -20,11 +21,51 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Trigger deploy pipeline for ${{ matrix.app_name }} in ${{ github.event.inputs.environment }}
+      - name: Trigger deploy pipeline for ${{ matrix.app_name }} in dev
         run: |
-          echo "Triggering deploy for ${{ matrix.app_name }} in ${{ github.event.inputs.environment }}"
+          echo "Triggering deploy for ${{ matrix.app_name }} in dev"
           curl -X POST \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: token ${{ secrets.SECRET_TOKEN }}" \
             https://api.github.com/repos/giannicaruana/demoPipelineCalled/actions/workflows/deploy.yml/dispatches \
-            -d "{\"ref\":\"main\", \"inputs\": {\"app_name\": \"${{ matrix.app_name }}\", \"environment\": \"${{ github.event.inputs.environment }}\"}}"
+            -d "{\"ref\":\"main\", \"inputs\": {\"app_name\": \"${{ matrix.app_name }}\", \"environment\": \"dev\"}}"
+
+  deploy-uat:
+    if: contains(github.event.inputs.environment, 'uat')
+    runs-on: ubuntu-latest
+    needs: deploy-dev
+    strategy:
+      matrix:
+        app_name: ${{ fromJson(github.event.inputs.apps) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Trigger deploy pipeline for ${{ matrix.app_name }} in uat
+        run: |
+          echo "Triggering deploy for ${{ matrix.app_name }} in uat"
+          curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.SECRET_TOKEN }}" \
+            https://api.github.com/repos/giannicaruana/demoPipelineCalled/actions/workflows/deploy.yml/dispatches \
+            -d "{\"ref\":\"main\", \"inputs\": {\"app_name\": \"${{ matrix.app_name }}\", \"environment\": \"uat\"}}"
+
+  deploy-prod:
+    if: contains(github.event.inputs.environment, 'prod')
+    runs-on: ubuntu-latest
+    needs: deploy-uat
+    strategy:
+      matrix:
+        app_name: ${{ fromJson(github.event.inputs.apps) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Trigger deploy pipeline for ${{ matrix.app_name }} in prod
+        run: |
+          echo "Triggering deploy for ${{ matrix.app_name }} in prod"
+          curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.SECRET_TOKEN }}" \
+            https://api.github.com/repos/giannicaruana/demoPipelineCalled/actions/workflows/deploy.yml/dispatches \
+            -d "{\"ref\":\"main\", \"inputs\": {\"app_name\": \"${{ matrix.app_name }}\", \"environment\": \"prod\"}}"
