@@ -28,4 +28,4 @@ jobs:
             -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: token ${{ secrets.SECRET_TOKEN }}" \
             https://api.github.com/repos/${{ github.repository }}/actions/workflows/trigger-pipelines.yml/dispatches \
-            -d '{"ref":"main", "inputs":{"app_name":"app1"}}'
+            -d '{"ref":"main", "inputs":{"app_name":"app2"}}'

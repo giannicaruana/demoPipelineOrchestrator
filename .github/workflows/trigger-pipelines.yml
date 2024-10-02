@@ -3,46 +3,20 @@ name: Dynamic Jobs
 on:
   workflow_dispatch:
     inputs:
-      app_name:
-        description: 'Name of the application'
+      apps:
+        description: 'List of applications'
         required: true
-        default: 'app'
 
 jobs:
-  download-output:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Download output artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: output
-          path: .
-
   generate-jobs:
-    needs: download-output
-    runs-on: ubuntu-latest
-    outputs:
-      apps: ${{ steps.generate.outputs.apps }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Read config file
-        id: generate
-        run: |
-          apps=$(jq -c '.applicationsTool' output.json)
-          echo "::set-output name=apps::$apps"
-
-  jobs:
-    needs: generate-jobs
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        app_name: ${{ fromJson(needs.generate-jobs.outputs.apps) }}
+        app_name: ${{ fromJson(github.event.inputs.apps) }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
       - name: Trigger deploy pipeline for ${{ matrix.app_name }}
         run: |
           echo "Triggering deploy for ${{ matrix.app_name }}"
