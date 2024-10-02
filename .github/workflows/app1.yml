@@ -4,8 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        required: true
-        description: 'Comma-separated list of deployment environments please insert dev,prod,uat for all'
+        description: 'Comma-separated list of deployment environments (e.g., dev,prod,uat)'
         required: true
         default: 'dev'
 
