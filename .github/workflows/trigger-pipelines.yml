@@ -17,7 +17,7 @@ jobs:
       - name: Awaiting approval
         uses: peter-evans/repository-dispatch@v2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.SECRET_TOKEN }}
           event-type: manual-approval
           client-payload: '{"message": "Please approve this workflow to proceed."}'
 
