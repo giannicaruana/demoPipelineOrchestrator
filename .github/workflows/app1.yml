@@ -4,13 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Select the deployment environment'
         required: true
-        type: choice
-        options:
-          - uat
-          - production
-          - development
+        description: 'Comma-separated list of deployment environments please insert dev,prod,uat for all'
+        required: true
+        default: 'dev'
 
 jobs:
   create-job:
