@@ -1,9 +1,12 @@
 name: App2 Workflow
 
-on:
-    push:
+on: 
     workflow_dispatch:
-  
+      inputs:
+        app_name:
+          description: 'Name of the application'
+          required: true
+          default: 'app'
 
 jobs:
   generate-output:
