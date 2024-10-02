@@ -11,9 +11,40 @@ on:
         required: true
 
 jobs:
+  approval:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Awaiting approval
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { context, github } = require('@actions/github');
+            const issueComment = context.payload.comment.body;
+            const issueNumber = context.issue.number;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            await github.issues.createComment({
+              owner,
+              repo,
+              issue_number: issueNumber,
+              body: 'Please approve this workflow to proceed.'
+            });
+
+            const approval = await github.issues.listComments({
+              owner,
+              repo,
+              issue_number: issueNumber
+            });
+
+            if (!approval.data.some(comment => comment.body.includes('approved'))) {
+              throw new Error('Workflow not approved');
+            }
+
   deploy-dev:
     if: contains(github.event.inputs.environment, 'dev')
     runs-on: ubuntu-latest
+    needs: approval
     strategy:
       matrix:
         app_name: ${{ fromJson(github.event.inputs.apps) }}
@@ -33,7 +64,7 @@ jobs:
   deploy-uat:
     if: contains(github.event.inputs.environment, 'uat')
     runs-on: ubuntu-latest
-    needs: deploy-dev
+    needs: [approval, deploy-dev]
     strategy:
       matrix:
         app_name: ${{ fromJson(github.event.inputs.apps) }}
@@ -53,7 +84,7 @@ jobs:
   deploy-prod:
     if: contains(github.event.inputs.environment, 'prod')
     runs-on: ubuntu-latest
-    needs: deploy-uat
+    needs: [approval, deploy-uat]
     strategy:
       matrix:
         app_name: ${{ fromJson(github.event.inputs.apps) }}
