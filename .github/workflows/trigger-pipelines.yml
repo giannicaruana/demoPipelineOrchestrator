@@ -6,6 +6,9 @@ on:
       apps:
         description: 'List of applications'
         required: true
+      environment:
+        description: 'Deployment environment'
+        required: true
 
 jobs:
   generate-jobs:
@@ -17,11 +20,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Trigger deploy pipeline for ${{ matrix.app_name }}
+      - name: Trigger deploy pipeline for ${{ matrix.app_name }} in ${{ github.event.inputs.environment }}
         run: |
-          echo "Triggering deploy for ${{ matrix.app_name }}"
+          echo "Triggering deploy for ${{ matrix.app_name }} in ${{ github.event.inputs.environment }}"
           curl -X POST \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: token ${{ secrets.SECRET_TOKEN }}" \
             https://api.github.com/repos/giannicaruana/demoPipelineCalled/actions/workflows/deploy.yml/dispatches \
-            -d "{\"ref\":\"main\", \"inputs\": {\"app_name\": \"${{ matrix.app_name }}\"}}"
+            -d "{\"ref\":\"main\", \"inputs\": {\"app_name\": \"${{ matrix.app_name }}\", \"environment\": \"${{ github.event.inputs.environment }}\"}}"
