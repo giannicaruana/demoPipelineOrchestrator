@@ -23,7 +23,7 @@ jobs:
         id: generate
         run: |
           echo "Generating output..."
-          echo '{"applicationsTool": ["app1", "app2", "app3"]}' > output.json
+          echo '{"applicationsTool": ["app1", "app12", "app13"]}' > output.json
 
       - name: Trigger trigger-pipelines workflow
         run: |
@@ -35,4 +35,4 @@ jobs:
             -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: token ${{ secrets.SECRET_TOKEN }}" \
             https://api.github.com/repos/${{ github.repository }}/actions/workflows/trigger-pipelines.yml/dispatches \
-            -d "{\"ref\":\"$branch\", \"inputs\":{\"apps\":$apps, \"environment\":$env}}"
+            -d "{\"ref\":\"$branch\", \"inputs\":{\"apps\":$apps, \"environment\":\"$env\"}}"
