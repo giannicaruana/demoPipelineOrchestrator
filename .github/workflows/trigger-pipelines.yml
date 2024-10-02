@@ -25,6 +25,25 @@ jobs:
         run: |
           echo "tested"
 
+  deploy-staging:
+    if: contains(github.event.inputs.environment, 'staging')
+    needs: run-test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app_name: ${{ fromJson(github.event.inputs.apps) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Trigger deploy pipeline for ${{ matrix.app_name }} in staging
+        run: |
+          echo "Triggering deploy for ${{ matrix.app_name }} in staging"
+          curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.SECRET_TOKEN }}" \
+            https://api.github.com/repos/giannicaruana/demoPipelineCalled/actions/workflows/deploy.yml/dispatches \
+            -d "{\"ref\":\"main\", \"inputs\": {\"app_name\": \"${{ matrix.app_name }}\", \"environment\": \"staging\"}}"
 
   deploy-dev:
     if: contains(github.event.inputs.environment, 'dev')
