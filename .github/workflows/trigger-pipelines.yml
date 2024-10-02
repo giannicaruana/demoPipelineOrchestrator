@@ -10,11 +10,6 @@ on:
 jobs:
   generate-jobs:
     runs-on: ubuntu-latest
-    steps:
-      - name: Read config file
-        id: generate
-        run: |
-          echo ${{ fromJson(github.event.inputs.apps) }}
     strategy:
       matrix:
         app_name: ${{ fromJson(github.event.inputs.apps) }}
