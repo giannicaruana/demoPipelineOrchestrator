@@ -15,30 +15,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Awaiting approval
-        uses: actions/github-script@v6
+        uses: chrnorm/deployment-approvals-action@v1
         with:
-          script: |
-            const issueComment = github.context.payload.comment.body;
-            const issueNumber = github.context.issue.number;
-            const owner = github.context.repo.owner;
-            const repo = github.context.repo.repo;
-
-            await github.issues.createComment({
-              owner,
-              repo,
-              issue_number: issueNumber,
-              body: 'Please approve this workflow to proceed.'
-            });
-
-            const approval = await github.issues.listComments({
-              owner,
-              repo,
-              issue_number: issueNumber
-            });
-
-            if (!approval.data.some(comment => comment.body.includes('approved'))) {
-              throw new Error('Workflow not approved');
-            }
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   deploy-dev:
     if: contains(github.event.inputs.environment, 'dev')
