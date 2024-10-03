@@ -2,11 +2,6 @@ name: App1
 
 on:
   workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Comma-separated list of deployment environments (e.g.,  dev,uat,prod)'
-        required: true
-        default: 'dev'
 
 jobs:
   create-job:
@@ -24,11 +19,10 @@ jobs:
       - name: Trigger trigger-pipelines workflow
         run: |
           apps=$(jq -c '.applicationsTool' output.json | jq -sRr @json)
-          env=${{ github.event.inputs.environment }}
           branch=${{ github.ref }}
           
           curl -X POST \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: token ${{ secrets.SECRET_TOKEN }}" \
             https://api.github.com/repos/${{ github.repository }}/actions/workflows/trigger-pipelines.yml/dispatches \
-            -d "{\"ref\":\"$branch\", \"inputs\":{\"apps\":$apps, \"environment\":\"$env\"}}"
+            -d "{\"ref\":\"$branch\", \"inputs\":{\"apps\":$apps}}"
